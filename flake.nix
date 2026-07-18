@@ -19,7 +19,7 @@
         gnumake
       ];
 
-      mkTTP2Package =
+      mkTablogPackage =
         {
           pname,
           buildTarget,
@@ -36,7 +36,7 @@
           configurePhase = ''
             cmake -B build -S $src \
               -DCMAKE_BUILD_TYPE=Release \
-              -DDEF_TTP2=${if enableLib then "ON" else "OFF"} \
+              -DDEF_TABLOG=${if enableLib then "ON" else "OFF"} \
               -DDEF_CLIENT=${if enableClient then "ON" else "OFF"} \
           '';
 
@@ -56,7 +56,7 @@
     {
       packages.${system} =
         let
-          lib = mkTTP2Package {
+          lib = mkTablogPackage {
             pname = "libtablog";
             buildTarget = "tablog";
             enableLib = true;
@@ -65,14 +65,14 @@
         {
           inherit lib;
 
-          client = mkTTP2Package {
+          client = mkTablogPackage {
             pname = "tablog-client";
             buildTarget = "tablog-client";
             enableClient = true;
             extraInputs = [ lib ];
           };
 
-          full = mkTTP2Package {
+          full = mkTablogPackage {
             pname = "libtablog-full";
             buildTarget = "all";
             enableLib = true;
