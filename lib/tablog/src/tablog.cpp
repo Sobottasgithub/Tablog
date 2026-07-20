@@ -4,12 +4,7 @@
 #include <ctime>
 #include <mutex>
 
-namespace tablog {  
-  Tablog& Tablog::getInstance() {
-      static Tablog instance; 
-      return instance;
-  }
-
+namespace tablog {
   void Tablog::configure(std::string name, bool displayTimestamp) {
      this->name = name;
      this->displayTimestamp = displayTimestamp;

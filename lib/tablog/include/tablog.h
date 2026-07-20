@@ -9,18 +9,13 @@ namespace tablog {
 
  class Tablog {
   public:
-   Tablog(const Tablog& object) = delete;
-   Tablog& operator=(const Tablog& object) = delete;
-   
-   static Tablog& getInstance();
-   
+   Tablog() {};
+
    void configure(std::string name, bool displayTimestamp);
    void log(LogLevel loglevel, const std::string& message);
    
   private:
-
    static std::mutex loggerMutex;
-   Tablog() {};
 
    std::string name = "";
    bool displayTimestamp = true;
