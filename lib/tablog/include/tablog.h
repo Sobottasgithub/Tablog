@@ -3,6 +3,8 @@
 
 #include <string>
 #include <mutex>
+#include <unordered_map>
+#include <vector>
 
 namespace tablog {
  enum LogLevel { DEBUG, INFO, WARNING, ERROR, CRITICAL };
@@ -15,10 +17,20 @@ namespace tablog {
    void log(LogLevel loglevel, const std::string& message);
    
   private:
-   static std::mutex loggerMutex;
+   std::mutex loggerMutex;
 
-   std::string name = "";
-   bool displayTimestamp = true;
+   struct LoglevelConfig {
+    std::string color = "";
+    bool visible = true;
+   };
+
+   struct Config {
+    std::string name = "";
+    bool displayTimestamp = true;
+    std::unordered_map<LogLevel, LoglevelConfig> loglevelConfigs;
+   };
+
+   Config config;
 
    std::string logLevelToString(LogLevel level);
  };

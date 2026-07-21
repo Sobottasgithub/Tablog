@@ -3,16 +3,46 @@
 #include <iostream>
 #include <ctime>
 #include <mutex>
+#include <pthread.h>
+#include <unordered_map>
 
 namespace tablog {
   void Tablog::configure(std::string name, bool displayTimestamp) {
-     this->name = name;
-     this->displayTimestamp = displayTimestamp;
+    std::lock_guard<std::mutex> lock(loggerMutex);
+    this->config.name = name;
+    this->config.displayTimestamp = displayTimestamp;
+
+    LoglevelConfig debugConfig;
+    debugConfig.color = "32m";
+
+    LoglevelConfig infoConfig;
+    infoConfig.color = "36m";
+
+    LoglevelConfig warningConfig;
+    warningConfig.color = "93m";
+
+    LoglevelConfig errorConfig;
+    errorConfig.color = "41;30m";
+
+    LoglevelConfig criticalConfig;
+    criticalConfig.color = "95m";
+
+    this->config.loglevelConfigs = {
+      {LogLevel::DEBUG, debugConfig},
+      {LogLevel::INFO, infoConfig},
+      {LogLevel::WARNING, warningConfig},
+      {LogLevel::ERROR, errorConfig},
+      {LogLevel::CRITICAL, criticalConfig}
+    };
   }
    
   void Tablog::log(LogLevel loglevel, const std::string& message) {
-     std::cout << "<\033[1;34m" << name << "\033[0m> " << "[" << logLevelToString(loglevel) << "] ";
-     if (displayTimestamp) {
+     std::lock_guard<std::mutex> lock(loggerMutex);
+     if (!this->config.loglevelConfigs[loglevel].visible)
+       return;
+     
+     std::cout << "<\033[1;34m" << this->config.name << "\033[0m> " << "[" << logLevelToString(loglevel) << "] ";
+     if (this->config.displayTimestamp) {
         time_t now = time(0);
         tm* timeinfo = localtime(&now);
         char timestamp[20];
@@ -27,15 +57,15 @@ namespace tablog {
     switch (level) {
       // https://en.wikipedia.org/wiki/ANSI_escape_code
       case DEBUG:
-        return "\033[32mDEBUG\033[0m";
+          return "\033[" + this->config.loglevelConfigs[DEBUG].color + "DEBUG\033[0m";
       case INFO:
-          return "\033[36mINFO\033[0m";
+          return "\033[" + this->config.loglevelConfigs[INFO].color + "INFO\033[0m";
       case WARNING:
-          return "\033[93mWARNING\033[0m";
+          return "\033[" + this->config.loglevelConfigs[WARNING].color + "WARNING\033[0m";
       case ERROR:
-          return "\033[41;30mERROR\033[0m";
+          return "\033[" + this->config.loglevelConfigs[ERROR].color + "ERROR\033[0m";
       case CRITICAL:
-          return "\033[95mCRITICAL\033[0m";
+          return "\033[" + this->config.loglevelConfigs[CRITICAL].color + "CRITICAL\033[0m";
       default:
           return "UNKNOWN";
       }
