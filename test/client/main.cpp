@@ -4,6 +4,7 @@
 #include "tablog.h"
 
 #include <memory>
+#include <optional>
 
 int main() {
     tablog::TablogRegistry* registry = &tablog::TablogRegistry::getInstance();
@@ -12,15 +13,24 @@ int main() {
     registry->registerLogger("TestClient", logger);
 
     std::shared_ptr<tablog::Tablog> logger2 = std::make_shared<tablog::Tablog>();
-    logger2->configure("TestClient2", true);
+    tablog::Tablog::LoglevelConfig loglevelConfig = {"32m", true};
+    
+    logger2->configure("TestClient2", false, false, std::nullopt, loglevelConfig, std::nullopt, loglevelConfig);
     registry->registerLogger("TestClient2", logger2);
 
 
     std::shared_ptr<tablog::Tablog> loggerInstance1 = registry->get("TestClient");
-    std::shared_ptr<tablog::Tablog> loggerInstance2 = registry->get("TestClient2");  
     loggerInstance1->log(tablog::DEBUG, "Tablog");
-    loggerInstance2->log(tablog::INFO, "Tablog");
+    loggerInstance1->log(tablog::INFO, "Tablog");
     loggerInstance1->log(tablog::WARNING, "Tablog");
-    loggerInstance2->log(tablog::ERROR, "Tablog");
+    loggerInstance1->log(tablog::ERROR, "Tablog");
     loggerInstance1->log(tablog::CRITICAL, "Tablog");
+
+    std::shared_ptr<tablog::Tablog> loggerInstance2 = registry->get("TestClient2");  
+    loggerInstance2->log(tablog::DEBUG, "Tablog");
+    loggerInstance2->log(tablog::INFO, "Tablog");
+    loggerInstance2->log(tablog::WARNING, "Tablog");
+    loggerInstance2->log(tablog::ERROR, "Tablog");
+    loggerInstance2->log(tablog::CRITICAL, "Tablog");
+
 }

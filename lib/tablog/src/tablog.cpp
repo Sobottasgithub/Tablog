@@ -5,34 +5,35 @@
 #include <mutex>
 #include <pthread.h>
 #include <unordered_map>
+#include <optional>
 
 namespace tablog {
-  void Tablog::configure(std::string name, bool displayTimestamp) {
+  void Tablog::configure(std::string name,
+                         std::optional<bool> displayName,
+                         std::optional<bool> displayTimestamp,
+                         std::optional<LoglevelConfig> debug,
+                         std::optional<LoglevelConfig> info,
+                         std::optional<LoglevelConfig> warning,
+                         std::optional<LoglevelConfig> error,
+                         std::optional<LoglevelConfig> critical) {
     std::lock_guard<std::mutex> lock(loggerMutex);
     this->config.name = name;
-    this->config.displayTimestamp = displayTimestamp;
-
-    LoglevelConfig debugConfig;
-    debugConfig.color = "32m";
-
-    LoglevelConfig infoConfig;
-    infoConfig.color = "36m";
-
-    LoglevelConfig warningConfig;
-    warningConfig.color = "93m";
-
-    LoglevelConfig errorConfig;
-    errorConfig.color = "41;30m";
-
-    LoglevelConfig criticalConfig;
-    criticalConfig.color = "95m";
+    if (displayName.has_value())
+      this->config.displayName = displayName.value();
+    else
+      this->config.displayName = true;
+    
+    if (displayTimestamp.has_value())
+      this->config.displayTimestamp = displayTimestamp.value();
+    else
+      this->config.displayTimestamp = true;
 
     this->config.loglevelConfigs = {
-      {LogLevel::DEBUG, debugConfig},
-      {LogLevel::INFO, infoConfig},
-      {LogLevel::WARNING, warningConfig},
-      {LogLevel::ERROR, errorConfig},
-      {LogLevel::CRITICAL, criticalConfig}
+      {LogLevel::DEBUG, setOptional(debug, "32m")},
+      {LogLevel::INFO, setOptional(info, "36m")},
+      {LogLevel::WARNING, setOptional(warning, "93m")},
+      {LogLevel::ERROR, setOptional(error, "41;30m")},
+      {LogLevel::CRITICAL, setOptional(critical, "95m")}
     };
   }
    
@@ -40,8 +41,10 @@ namespace tablog {
      std::lock_guard<std::mutex> lock(loggerMutex);
      if (!this->config.loglevelConfigs[loglevel].visible)
        return;
+     if (this->config.displayName)
+       std::cout << "<\033[1;34m" << this->config.name << "\033[0m> ";
      
-     std::cout << "<\033[1;34m" << this->config.name << "\033[0m> " << "[" << logLevelToString(loglevel) << "] ";
+     std::cout << "[" << logLevelToString(loglevel) << "] ";
      if (this->config.displayTimestamp) {
         time_t now = time(0);
         tm* timeinfo = localtime(&now);
@@ -69,5 +72,16 @@ namespace tablog {
       default:
           return "UNKNOWN";
       }
+  }
+
+  Tablog::LoglevelConfig Tablog::setOptional(std::optional<LoglevelConfig> option, std::string replacement) {
+    LoglevelConfig loglevelConfig;
+    if (option.has_value()) {
+      loglevelConfig.color = option.value().color;
+      loglevelConfig.visible = option.value().visible;
+    } else
+      loglevelConfig.color = replacement;
+
+    return loglevelConfig;
   }
 }
