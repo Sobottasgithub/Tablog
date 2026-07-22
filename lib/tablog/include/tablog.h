@@ -25,6 +25,7 @@ namespace tablog {
    void configure(std::string name,
                   std::optional<bool> displayName = true,
                   std::optional<bool> displayTimestamp = true,
+                  std::optional<bool> storeLogs = false,
                   std::optional<LoglevelConfig> debug = std::nullopt,
                   std::optional<LoglevelConfig> info = std::nullopt,
                   std::optional<LoglevelConfig> warning = std::nullopt,
@@ -32,6 +33,8 @@ namespace tablog {
                   std::optional<LoglevelConfig> critical = std::nullopt);
   
    void log(LogLevel loglevel, const std::string& message);
+
+   void storeLogs(std::string filePath);
    
   private:
    std::mutex loggerMutex;
@@ -40,10 +43,13 @@ namespace tablog {
     std::string name = "";
     bool displayName = true;
     bool displayTimestamp = true;
+    bool storeLogs = false;
     std::unordered_map<LogLevel, LoglevelConfig> loglevelConfigs;
    };
 
    Config config;
+
+   std::string logs = "";
 
    std::string logLevelToString(LogLevel level);
 

@@ -18,6 +18,7 @@ namespace tablog {
       std::string name = std::string(tomlTable["default"]["name"].value_or(""));
       bool displayName = bool(tomlTable["default"]["displayName"].value_or(true));
       bool displayTimestamp = bool(tomlTable["default"]["displayTimestamp"].value_or(true));
+      bool storeLogs = bool(tomlTable["default"]["storeLogs"].value_or(false));
 
       Tablog::LoglevelConfig debugConfig = getLoglevelConfigFromToml("debug", tomlTable);
       Tablog::LoglevelConfig infoConfig = getLoglevelConfigFromToml("info", tomlTable);
@@ -25,7 +26,7 @@ namespace tablog {
       Tablog::LoglevelConfig errorConfig = getLoglevelConfigFromToml("error", tomlTable);
       Tablog::LoglevelConfig criticalConfig = getLoglevelConfigFromToml("critical", tomlTable);
 
-      configure(name, displayName, displayTimestamp, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
+      configure(name, displayName, displayTimestamp, storeLogs, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
     } catch (const toml::parse_error& err) {
       std::cout << "Unable to open config toml file: " << err << std::endl;
       configure("", false, false);
@@ -35,6 +36,7 @@ namespace tablog {
   void Tablog::configure(std::string name,
                          std::optional<bool> displayName,
                          std::optional<bool> displayTimestamp,
+                         std::optional<bool> storeLogs,
                          std::optional<LoglevelConfig> debug,
                          std::optional<LoglevelConfig> info,
                          std::optional<LoglevelConfig> warning,
@@ -52,6 +54,11 @@ namespace tablog {
     else
       this->config.displayTimestamp = true;
 
+    if (storeLogs.has_value())
+      this->config.storeLogs = storeLogs.value();
+    else
+      this->config.storeLogs = false;
+
     this->config.loglevelConfigs = {
       {LogLevel::DEBUG, setOptional(debug, "32m")},
       {LogLevel::INFO, setOptional(info, "36m")},
@@ -65,10 +72,17 @@ namespace tablog {
      std::lock_guard<std::mutex> lock(loggerMutex);
      if (!this->config.loglevelConfigs[loglevel].visible)
        return;
-     if (this->config.displayName)
+     if (this->config.displayName) {
        std::cout << "<\033[1;34m" << this->config.name << "\033[0m> ";
+
+       if (this->config.storeLogs)
+         this->logs += "<" + this->config.name + "> ";
+     }
      
      std::cout << "[" << logLevelToString(loglevel) << "] ";
+     if (this->config.storeLogs)
+         this->logs += "[" + logLevelToString(loglevel) + "] ";
+
      if (this->config.displayTimestamp) {
         time_t now = time(0);
         tm* timeinfo = localtime(&now);
@@ -76,8 +90,17 @@ namespace tablog {
         strftime(timestamp, sizeof(timestamp),
                  "%H:%M:%S", timeinfo);
         std::cout << timestamp << " ";
+
+        if (this->config.storeLogs)
+          this->logs = this->logs + timestamp + " ";
      }
      std::cout << message.c_str() << std::endl;
+     if (this->config.storeLogs)
+         this->logs += message + "\n";
+  }
+
+  void Tablog::storeLogs(std::string filePath) {
+    std::cout << this->logs;
   }
 
   std::string Tablog::logLevelToString(LogLevel level) {
