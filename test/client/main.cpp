@@ -16,7 +16,7 @@ int main() {
     std::shared_ptr<tablog::Tablog> logger2 = std::make_shared<tablog::Tablog>();
     tablog::Tablog::LoglevelConfig loglevelConfig = {"32m", true};
     
-    logger2->configure("TestClient2", false, false, true, std::nullopt, loglevelConfig, std::nullopt, loglevelConfig);
+    logger2->configure("TestClient2", false, false, false, true, std::nullopt, loglevelConfig, std::nullopt, loglevelConfig);
     registry->registerLogger("TestClient2", logger2);
 
     std::shared_ptr<tablog::Tablog> logger3 = std::make_shared<tablog::Tablog>();

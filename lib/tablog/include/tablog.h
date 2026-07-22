@@ -25,6 +25,7 @@ namespace tablog {
    void configure(std::string name,
                   std::optional<bool> displayName = true,
                   std::optional<bool> displayTimestamp = true,
+                  std::optional<bool> displayColor = true,
                   std::optional<bool> storeLogs = false,
                   std::optional<LoglevelConfig> debug = std::nullopt,
                   std::optional<LoglevelConfig> info = std::nullopt,
@@ -43,6 +44,7 @@ namespace tablog {
     std::string name = "";
     bool displayName = true;
     bool displayTimestamp = true;
+    bool displayColor = true;
     bool storeLogs = false;
     std::unordered_map<LogLevel, LoglevelConfig> loglevelConfigs;
    };
@@ -55,6 +57,8 @@ namespace tablog {
 
    LoglevelConfig setOptional(std::optional<LoglevelConfig> option, std::string replacement);
    LoglevelConfig getLoglevelConfigFromToml(std::string logLevel, toml::table table);
+
+   bool extractConfigBool(std::optional<bool> optionalBool, bool defaultConfig);
  };
 }
 

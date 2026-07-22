@@ -18,6 +18,7 @@ namespace tablog {
       std::string name = std::string(tomlTable["default"]["name"].value_or(""));
       bool displayName = bool(tomlTable["default"]["displayName"].value_or(true));
       bool displayTimestamp = bool(tomlTable["default"]["displayTimestamp"].value_or(true));
+      bool displayColor = bool(tomlTable["default"]["color"].value_or(true));
       bool storeLogs = bool(tomlTable["default"]["storeLogs"].value_or(false));
 
       Tablog::LoglevelConfig debugConfig = getLoglevelConfigFromToml("debug", tomlTable);
@@ -26,7 +27,7 @@ namespace tablog {
       Tablog::LoglevelConfig errorConfig = getLoglevelConfigFromToml("error", tomlTable);
       Tablog::LoglevelConfig criticalConfig = getLoglevelConfigFromToml("critical", tomlTable);
 
-      configure(name, displayName, displayTimestamp, storeLogs, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
+      configure(name, displayName, displayTimestamp, displayColor, storeLogs, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
     } catch (const toml::parse_error& err) {
       std::cout << "Unable to open config toml file: " << err << std::endl;
       configure("", false, false);
@@ -36,6 +37,7 @@ namespace tablog {
   void Tablog::configure(std::string name,
                          std::optional<bool> displayName,
                          std::optional<bool> displayTimestamp,
+                         std::optional<bool> displayColor,
                          std::optional<bool> storeLogs,
                          std::optional<LoglevelConfig> debug,
                          std::optional<LoglevelConfig> info,
@@ -44,20 +46,11 @@ namespace tablog {
                          std::optional<LoglevelConfig> critical) {
     std::lock_guard<std::mutex> lock(loggerMutex);
     this->config.name = name;
-    if (displayName.has_value())
-      this->config.displayName = displayName.value();
-    else
-      this->config.displayName = true;
-    
-    if (displayTimestamp.has_value())
-      this->config.displayTimestamp = displayTimestamp.value();
-    else
-      this->config.displayTimestamp = true;
 
-    if (storeLogs.has_value())
-      this->config.storeLogs = storeLogs.value();
-    else
-      this->config.storeLogs = false;
+    this->config.displayName = extractConfigBool(displayName, true);
+    this->config.displayTimestamp = extractConfigBool(displayTimestamp, true);
+    this->config.displayColor = extractConfigBool(displayColor, true);
+    this->config.storeLogs = extractConfigBool(storeLogs, false);
 
     this->config.loglevelConfigs = {
       {LogLevel::DEBUG, setOptional(debug, "32m")},
@@ -73,8 +66,11 @@ namespace tablog {
      if (!this->config.loglevelConfigs[loglevel].visible)
        return;
      if (this->config.displayName) {
-       std::cout << "<\033[1;34m" << this->config.name << "\033[0m> ";
-
+       if (this->config.displayName)
+         std::cout << "<\033[1;34m" << this->config.name << "\033[0m> ";
+       else
+         std::cout << "<" << this->config.name << ">";
+        
        if (this->config.storeLogs)
          this->logs += "<" + this->config.name + "> ";
      }
@@ -107,15 +103,30 @@ namespace tablog {
     switch (level) {
       // https://en.wikipedia.org/wiki/ANSI_escape_code
       case DEBUG:
-          return "\033[" + this->config.loglevelConfigs[DEBUG].color + "DEBUG\033[0m";
+          if (this->config.displayColor)
+            return "\033[" + this->config.loglevelConfigs[DEBUG].color + "DEBUG\033[0m";
+          else
+            return "DEBUG";
       case INFO:
-          return "\033[" + this->config.loglevelConfigs[INFO].color + "INFO\033[0m";
+          if (this->config.displayColor)
+            return "\033[" + this->config.loglevelConfigs[INFO].color + "INFO\033[0m";
+          else
+            return "INFO";
       case WARNING:
-          return "\033[" + this->config.loglevelConfigs[WARNING].color + "WARNING\033[0m";
+          if (this->config.displayColor)
+            return "\033[" + this->config.loglevelConfigs[WARNING].color + "WARNING\033[0m";
+          else
+            return "WARNING";
       case ERROR:
-          return "\033[" + this->config.loglevelConfigs[ERROR].color + "ERROR\033[0m";
+          if (this->config.displayColor)
+            return "\033[" + this->config.loglevelConfigs[ERROR].color + "ERROR\033[0m";
+          else
+            return "ERROR";
       case CRITICAL:
-          return "\033[" + this->config.loglevelConfigs[CRITICAL].color + "CRITICAL\033[0m";
+          if (this->config.displayColor)
+            return "\033[" + this->config.loglevelConfigs[CRITICAL].color + "CRITICAL\033[0m";
+          else
+            return "CRITICAL";
       default:
           return "UNKNOWN";
       }
@@ -144,5 +155,12 @@ namespace tablog {
     config.visible = visible;
 
     return config;
+  }
+
+  bool Tablog::extractConfigBool(std::optional<bool> optionalBool, bool defaultConfig) {
+    if (optionalBool.has_value())
+      return optionalBool.value();
+    else
+      return defaultConfig;
   }
 }
