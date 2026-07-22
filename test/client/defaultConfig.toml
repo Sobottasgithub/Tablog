@@ -1,0 +1,26 @@
+[default]
+name = "TablogTomlConfig"
+displayName = true
+displayTimestamp = true
+
+[loglevel]
+  [[debug]]
+  color = "32m"
+  visible = true
+
+  [[info]]
+  color = "36m"
+  visible = true
+
+  [[warning]]
+  color = "93m"
+  visible = true
+
+  [[error]]
+  color = "41;30m"
+  visible = true
+
+  [[critical]]
+  color = "95m"
+  visible = true
+

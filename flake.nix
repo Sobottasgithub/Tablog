@@ -17,6 +17,7 @@
         cmake
         gcc
         gnumake
+        tomlplusplus
       ];
 
       mkTablogPackage =
