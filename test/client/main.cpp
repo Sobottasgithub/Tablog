@@ -44,5 +44,9 @@ int main() {
     loggerInstance3->log(tablog::ERROR, "Tablog");
     loggerInstance3->log(tablog::CRITICAL, "Tablog");
 
-    loggerInstance2->storeLogs("");
+    std::string filePath;
+    std::cout << "Storelogs! Filepath: ";
+    std::cin >> filePath;
+    if (!loggerInstance2->storeLogs(filePath))
+        loggerInstance3->log(tablog::ERROR, "Invalid file path!");
 }

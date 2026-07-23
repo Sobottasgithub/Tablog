@@ -7,6 +7,8 @@
 #include <toml++/impl/parse_result.hpp>
 #include <unordered_map>
 #include <optional>
+#include <fstream>
+#include <filesystem>
 
 #include <toml++/toml.hpp>
 
@@ -95,8 +97,15 @@ namespace tablog {
          this->logs += message + "\n";
   }
 
-  void Tablog::storeLogs(std::string filePath) {
-    std::cout << this->logs;
+  bool Tablog::storeLogs(std::string filePath) {
+    if (std::filesystem::exists(filePath)) {
+      std::ofstream logFile(filePath);
+      logFile << this->logs;
+      logFile.close();
+      return true;
+    } else {
+      return false;
+    }
   }
 
   std::string Tablog::logLevelToString(LogLevel level) {

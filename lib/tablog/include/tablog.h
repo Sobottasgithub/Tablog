@@ -35,7 +35,7 @@ namespace tablog {
   
    void log(LogLevel loglevel, const std::string& message);
 
-   void storeLogs(std::string filePath);
+   bool storeLogs(std::string filePath);
    
   private:
    std::mutex loggerMutex;
