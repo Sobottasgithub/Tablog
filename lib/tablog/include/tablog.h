@@ -7,8 +7,6 @@
 #include <vector>
 #include <optional>
 
-#include <toml++/toml.hpp>
-
 namespace tablog {
  enum LogLevel { DEBUG, INFO, WARNING, ERROR, CRITICAL };
 
@@ -56,7 +54,6 @@ namespace tablog {
    std::string logLevelToString(LogLevel level);
 
    LoglevelConfig setOptional(std::optional<LoglevelConfig> option, std::string replacement);
-   LoglevelConfig getLoglevelConfigFromToml(std::string logLevel, toml::table table);
 
    bool extractConfigBool(std::optional<bool> optionalBool, bool defaultConfig);
  };

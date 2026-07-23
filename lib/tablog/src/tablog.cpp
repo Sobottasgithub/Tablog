@@ -1,5 +1,7 @@
 #include "../include/tablog.h"
 
+#include "../include/tablog_helpers.h"
+
 #include <iostream>
 #include <ctime>
 #include <mutex>
@@ -23,11 +25,11 @@ namespace tablog {
       bool displayColor = bool(tomlTable["default"]["color"].value_or(true));
       bool storeLogs = bool(tomlTable["default"]["storeLogs"].value_or(false));
 
-      Tablog::LoglevelConfig debugConfig = getLoglevelConfigFromToml("debug", tomlTable);
-      Tablog::LoglevelConfig infoConfig = getLoglevelConfigFromToml("info", tomlTable);
-      Tablog::LoglevelConfig warningConfig = getLoglevelConfigFromToml("warning", tomlTable);
-      Tablog::LoglevelConfig errorConfig = getLoglevelConfigFromToml("error", tomlTable);
-      Tablog::LoglevelConfig criticalConfig = getLoglevelConfigFromToml("critical", tomlTable);
+      Tablog::LoglevelConfig debugConfig = TablogHelpers::getLoglevelConfigFromToml("debug", tomlTable);
+      Tablog::LoglevelConfig infoConfig = TablogHelpers::getLoglevelConfigFromToml("info", tomlTable);
+      Tablog::LoglevelConfig warningConfig = TablogHelpers::getLoglevelConfigFromToml("warning", tomlTable);
+      Tablog::LoglevelConfig errorConfig = TablogHelpers::getLoglevelConfigFromToml("error", tomlTable);
+      Tablog::LoglevelConfig criticalConfig = TablogHelpers::getLoglevelConfigFromToml("critical", tomlTable);
 
       configure(name, displayName, displayTimestamp, displayColor, storeLogs, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
     } catch (const toml::parse_error& err) {
@@ -153,17 +155,6 @@ namespace tablog {
       loglevelConfig.color = replacement;
 
     return loglevelConfig;
-  }
-
-  Tablog::LoglevelConfig Tablog::getLoglevelConfigFromToml(std::string logLevel, toml::table table) {
-    std::string color = std::string(table["loglevel"][logLevel]["color"].value_or(""));
-    bool visible = bool(table["loglevel"][logLevel]["visible"].value_or(true));
-
-    Tablog::LoglevelConfig config;
-    config.color = color;
-    config.visible = visible;
-
-    return config;
   }
 
   bool Tablog::extractConfigBool(std::optional<bool> optionalBool, bool defaultConfig) {
