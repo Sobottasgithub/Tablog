@@ -8,55 +8,56 @@
   outputs =
     { self, nixpkgs }:
     let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-
-      version = "0.2.1";
-
-      commonDeps = with pkgs; [
-        cmake
-        gcc
-        gnumake
-        tomlplusplus
-      ];
-
-      mkTablogPackage =
-        {
-          pname,
-          buildTarget,
-          enableLib ? false,
-          enableClient ? false,
-          extraInputs ? [ ],
-        }:
-        pkgs.stdenv.mkDerivation {
-          inherit pname version;
-          src = ./.;
-
-          buildInputs = commonDeps ++ extraInputs;
-
-          configurePhase = ''
-            cmake -B build -S $src \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DDEF_TABLOG=${if enableLib then "ON" else "OFF"} \
-              -DDEF_CLIENT=${if enableClient then "ON" else "OFF"} \
-          '';
-
-          buildPhase = ''
-            cmake --build build \
-              --target ${buildTarget} \
-              -j$NIX_BUILD_CORES
-          '';
-
-          installPhase = ''
-            cmake --install build --prefix=$out
-            cp LICENSE $out/
-          '';
-        };
-
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
+      forEachSystem = nixpkgs.lib.genAttrs supportedSystems;
     in
     {
-      packages.${system} =
+      packages = forEachSystem (
+        system:
         let
+          pkgs = import nixpkgs { inherit system; };
+          version = "0.2.1";
+
+          commonDeps = with pkgs; [
+            cmake
+            gcc
+            gnumake
+            tomlplusplus
+          ];
+
+          mkTablogPackage =
+            {
+              pname,
+              buildTarget,
+              enableLib ? false,
+              enableClient ? false,
+              extraInputs ? [ ],
+            }:
+            pkgs.stdenv.mkDerivation {
+              inherit pname version;
+              src = ./.;
+
+              buildInputs = commonDeps ++ extraInputs;
+
+              configurePhase = ''
+                cmake -B build -S $src \
+                  -DCMAKE_BUILD_TYPE=Release \
+                  -DDEF_TABLOG=${if enableLib then "ON" else "OFF"} \
+                  -DDEF_CLIENT=${if enableClient then "ON" else "OFF"} \
+              '';
+
+              buildPhase = ''
+                cmake --build build \
+                  --target ${buildTarget} \
+                  -j$NIX_BUILD_CORES
+              '';
+
+              installPhase = ''
+                cmake --install build --prefix=$out
+                cp LICENSE $out/
+              '';
+            };
+
           lib = mkTablogPackage {
             pname = "libtablog";
             buildTarget = "tablog";
@@ -80,18 +81,33 @@
             enableClient = true;
           };
 
-          default = self.packages.${system}.lib;
-        };
+          default = lib;
+        }
+      );
 
-      devShells.${system}.default = pkgs.mkShell {
-        packages = commonDeps ++ [
-          pkgs.bridge-utils
-          pkgs.clang-tools
-        ];
+      devShells = forEachSystem (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          commonDeps = with pkgs; [
+            cmake
+            gcc
+            gnumake
+            tomlplusplus
+          ];
+        in
+        {
+          default = pkgs.mkShell {
+            packages = commonDeps ++ [
+              pkgs.bridge-utils
+              pkgs.clang-tools
+            ];
 
-        shellHook = ''
-          git status
-        '';
-      };
+            shellHook = ''
+              git status
+            '';
+          };
+        }
+      );
     };
 }
