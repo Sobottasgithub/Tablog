@@ -3,7 +3,8 @@
 #include "../include/tablog_helpers.h"
 
 #include <iostream>
-#include <ctime>
+#include <chrono>
+#include <format>
 #include <mutex>
 #include <pthread.h>
 #include <toml++/impl/parse_result.hpp>
@@ -84,15 +85,14 @@ namespace tablog {
          this->logs += "[" + logLevelToString(loglevel) + "] ";
 
      if (this->config.displayTimestamp) {
-        time_t now = time(0);
-        tm* timeinfo = localtime(&now);
-        char timestamp[20];
-        strftime(timestamp, sizeof(timestamp),
-                 "%H:%M:%S", timeinfo);
-        std::cout << timestamp << " ";
+      auto timeNow = std::chrono::system_clock::now();
+      std::chrono::zoned_time localTime{std::chrono::current_zone(), timeNow};
+      auto displayTimeNow = std::chrono::floor<std::chrono::seconds>(localTime.get_local_time());
 
-        if (this->config.storeLogs)
-          this->logs = this->logs + timestamp + " ";
+      std::cout << std::format("{:%H:%M:%S}", displayTimeNow) << " ";
+
+      if (this->config.storeLogs)
+        this->logs = this->logs + std::format("{:%H:%M:%S}", localTime.get_local_time()) + " ";
      }
      std::cout << message.c_str() << std::endl;
      if (this->config.storeLogs)
