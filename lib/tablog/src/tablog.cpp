@@ -70,7 +70,7 @@ namespace tablog {
      if (!this->config.loglevelConfigs[loglevel].visible)
        return;
      if (this->config.displayName) {
-       if (this->config.displayName)
+       if (this->config.displayColor)
          std::cout << "<\033[1;34m" << this->config.name << "\033[0m> ";
        else
          std::cout << "<" << this->config.name << ">";
