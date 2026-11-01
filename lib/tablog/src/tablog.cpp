@@ -22,7 +22,7 @@ namespace tablog {
       std::string name = std::string(tomlTable["default"]["name"].value_or(""));
       bool displayName = bool(tomlTable["default"]["displayName"].value_or(true));
       bool displayTimestamp = bool(tomlTable["default"]["displayTimestamp"].value_or(true));
-      bool displayColor = bool(tomlTable["default"]["color"].value_or(true));
+      bool displayColor = bool(tomlTable["default"]["displayColor"].value_or(true));
       bool storeLogs = bool(tomlTable["default"]["storeLogs"].value_or(false));
 
       Tablog::LoglevelConfig debugConfig = TablogHelpers::getLoglevelConfigFromToml("debug", tomlTable);
