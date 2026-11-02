@@ -36,7 +36,7 @@ namespace tablog {
    bool storeLogs(std::string filePath);
    
   private:
-   std::mutex loggerMutex;
+   inline static std::mutex loggerMutex;
 
    struct Config {
     std::string name = "";
