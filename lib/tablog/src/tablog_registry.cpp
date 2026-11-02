@@ -14,10 +14,15 @@ namespace tablog {
   }
 
   void TablogRegistry::registerLogger(const std::string& key, std::shared_ptr<Tablog> tablogInstance) {
+    std::lock_guard<std::mutex> lock(loggerMutex);
     this->registeredLogger.insert_or_assign(key, tablogInstance);
   }
 
   std::shared_ptr<Tablog> TablogRegistry::get(std::string key) {
-    return this->registeredLogger.at(key);
+    std::lock_guard<std::mutex> lock(loggerMutex);
+    if (this->registeredLogger.size() > 0) {
+      return this->registeredLogger.at(key);
+    }
+    return nullptr;
   }
 }

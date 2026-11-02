@@ -20,7 +20,7 @@ namespace tablog {
         std::shared_ptr<Tablog> get(std::string key);
 
       private:
-        static std::mutex loggerMutex;
+        std::mutex loggerMutex;
         TablogRegistry();
 
         std::unordered_map<std::string, std::shared_ptr<Tablog>> registeredLogger;
