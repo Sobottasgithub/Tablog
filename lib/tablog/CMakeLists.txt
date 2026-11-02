@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c")
 # file(GLOB_RECURSE HEADERS "include/*.h")
 
-add_library(tablog SHARED ${SOURCES} ${LIBTASN1_LIBRARIES})
+add_library(tablog SHARED ${SOURCES})
 
 target_include_directories(tablog PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
