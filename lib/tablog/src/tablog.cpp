@@ -70,17 +70,23 @@ namespace tablog {
      std::lock_guard<std::mutex> lock(loggerMutex);
      if (!this->config.loglevelConfigs[loglevel].visible)
        return;
+
+     std::ostream* logStream = &std::cout;
+     if (loglevel == LogLevel::ERROR || loglevel == LogLevel::CRITICAL) {
+       logStream = &std::cerr;
+     }
+       
      if (this->config.displayName) {
        if (this->config.displayColor)
-         std::cout << "<\033[1;34m" << this->config.name << "\033[0m> ";
+         *logStream << "<\033[1;34m" << this->config.name << "\033[0m> ";
        else
-         std::cout << "<" << this->config.name << ">";
+         *logStream << "<" << this->config.name << ">";
         
        if (this->config.storeLogs)
          this->logs += "<" + this->config.name + "> ";
      }
      
-     std::cout << "[" << logLevelToString(loglevel) << "] ";
+     *logStream << "[" << logLevelToString(loglevel) << "] ";
      if (this->config.storeLogs)
          this->logs += "[" + logLevelToString(loglevel) + "] ";
 
@@ -89,12 +95,12 @@ namespace tablog {
       std::chrono::zoned_time localTime{std::chrono::current_zone(), timeNow};
       auto displayTimeNow = std::chrono::floor<std::chrono::seconds>(localTime.get_local_time());
 
-      std::cout << std::format("{:%H:%M:%S}", displayTimeNow) << " ";
+      *logStream << std::format("{:%H:%M:%S}", displayTimeNow) << " ";
 
       if (this->config.storeLogs)
         this->logs = this->logs + std::format("{:%H:%M:%S}", localTime.get_local_time()) + " ";
      }
-     std::cout << message.c_str() << std::endl;
+     *logStream << message.c_str() << std::endl;
      if (this->config.storeLogs)
          this->logs += message + "\n";
   }
