@@ -17,6 +17,7 @@ displayName = true
 displayTimestamp = true
 displayColor = true
 storeLogs = false
+logsDirectory = ""
 
 [loglevel]
   [[debug]]

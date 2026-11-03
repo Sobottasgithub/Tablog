@@ -91,12 +91,12 @@ namespace tablog {
          *logStream << "<" << this->config.name << ">";
         
        if (this->config.storeLogs)
-         this->logs += "<" + this->config.name + "> ";
+         *(this->logFile) << "<" + this->config.name + "> ";
      }
      
      *logStream << "[" << logLevelToString(loglevel) << "] ";
      if (this->config.storeLogs)
-         this->logs += "[" + logLevelToString(loglevel) + "] ";
+         *(this->logFile) << "[" + logLevelToString(loglevel) + "] ";
 
      if (this->config.displayTimestamp) {
       auto timeNow = std::chrono::system_clock::now();
@@ -106,19 +106,32 @@ namespace tablog {
       *logStream << std::format("{:%H:%M:%S}", displayTimeNow) << " ";
 
       if (this->config.storeLogs)
-        this->logs = this->logs + std::format("{:%H:%M:%S}", localTime.get_local_time()) + " ";
+        *(this->logFile) << std::format("{:%H:%M:%S}", localTime.get_local_time()) + " ";
      }
      *logStream << message.c_str() << std::endl;
      if (this->config.storeLogs)
-         this->logs += message + "\n";
+         *(this->logFile) << message + "\n";
   }
 
   bool Tablog::initStoreLogs(std::string filePath) {
-    // TODO: implement initStoreLogs and store logs
-    // std::ofstream logFile(filePath);
-    // logFile << this->logs;
-    // logFile.close();
+    std::filesystem::path realFilePath = filePath;
+    if (!std::filesystem::exists(realFilePath.parent_path())) {
+      std::filesystem::create_directories(realFilePath.parent_path());
+    }
+
+    this->logFile = new std::ofstream(realFilePath);
+    if (!this->logFile->is_open()) {
+      // throw std::runtime_error("Error: Could not create the file");
+      return false;
+    }
+        
     return true;
+  }
+
+  void Tablog::closeLogs() {
+    if (!this->logFile->is_open()) {
+      this->logFile->close();
+    }
   }
 
   std::string Tablog::logLevelToString(LogLevel level) {

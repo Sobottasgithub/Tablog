@@ -33,6 +33,8 @@ namespace tablog {
                   std::optional<LoglevelConfig> critical = std::nullopt);
   
    void log(LogLevel loglevel, const std::string& message);
+
+   void closeLogs();
    
   private:
    inline static std::mutex loggerMutex;
@@ -49,7 +51,7 @@ namespace tablog {
 
    Config config;
 
-   std::string logs = "";
+   std::ofstream* logFile;
 
    std::string logLevelToString(LogLevel level);
 
