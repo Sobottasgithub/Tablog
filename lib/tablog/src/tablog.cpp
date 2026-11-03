@@ -110,7 +110,7 @@ namespace tablog {
      }
      *logStream << message.c_str() << std::endl;
      if (this->config.storeLogs)
-         *(this->logFile) << message + "\n";
+         *(this->logFile) << message + "\n" << std::flush;
   }
 
   bool Tablog::initStoreLogs(std::string filePath) {
