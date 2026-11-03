@@ -24,7 +24,9 @@ namespace tablog {
       bool displayName = bool(tomlTable["default"]["displayName"].value_or(true));
       bool displayTimestamp = bool(tomlTable["default"]["displayTimestamp"].value_or(true));
       bool displayColor = bool(tomlTable["default"]["displayColor"].value_or(true));
+      
       bool storeLogs = bool(tomlTable["default"]["storeLogs"].value_or(false));
+      std::string logsDirectory = std::string(tomlTable["default"]["logsDirectory"].value_or(""));
 
       Tablog::LoglevelConfig debugConfig = TablogHelpers::getLoglevelConfigFromToml("debug", tomlTable);
       Tablog::LoglevelConfig infoConfig = TablogHelpers::getLoglevelConfigFromToml("info", tomlTable);
@@ -32,7 +34,7 @@ namespace tablog {
       Tablog::LoglevelConfig errorConfig = TablogHelpers::getLoglevelConfigFromToml("error", tomlTable);
       Tablog::LoglevelConfig criticalConfig = TablogHelpers::getLoglevelConfigFromToml("critical", tomlTable);
 
-      configure(name, displayName, displayTimestamp, displayColor, storeLogs, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
+      configure(name, displayName, displayTimestamp, displayColor, storeLogs, logsDirectory, debugConfig, infoConfig, warningConfig, errorConfig, criticalConfig);
     } catch (const toml::parse_error& err) {
       std::cout << "Unable to open config toml file: " << err << std::endl;
       configure("", false, false);
@@ -44,6 +46,7 @@ namespace tablog {
                          std::optional<bool> displayTimestamp,
                          std::optional<bool> displayColor,
                          std::optional<bool> storeLogs,
+                         std::optional<std::string> logsDirectory,
                          std::optional<LoglevelConfig> debug,
                          std::optional<LoglevelConfig> info,
                          std::optional<LoglevelConfig> warning,
@@ -52,10 +55,15 @@ namespace tablog {
     std::lock_guard<std::mutex> lock(loggerMutex);
     this->config.name = name;
 
-    this->config.displayName = extractConfigBool(displayName, true);
-    this->config.displayTimestamp = extractConfigBool(displayTimestamp, true);
-    this->config.displayColor = extractConfigBool(displayColor, true);
-    this->config.storeLogs = extractConfigBool(storeLogs, false);
+    this->config.displayName = extractConfig(displayName, true);
+    this->config.displayTimestamp = extractConfig(displayTimestamp, true);
+    this->config.displayColor = extractConfig(displayColor, true);
+    
+    this->config.storeLogs = extractConfig(storeLogs, false);
+    this->config.logsDirectory = extractConfig(logsDirectory, std::string(""));
+    if (this->config.storeLogs) {
+      initStoreLogs(this->config.logsDirectory);
+    }
 
     this->config.loglevelConfigs = {
       {LogLevel::DEBUG, setOptional(debug, "32m")},
@@ -105,15 +113,12 @@ namespace tablog {
          this->logs += message + "\n";
   }
 
-  bool Tablog::storeLogs(std::string filePath) {
-    if (std::filesystem::exists(filePath)) {
-      std::ofstream logFile(filePath);
-      logFile << this->logs;
-      logFile.close();
-      return true;
-    } else {
-      return false;
-    }
+  bool Tablog::initStoreLogs(std::string filePath) {
+    // TODO: implement initStoreLogs and store logs
+    // std::ofstream logFile(filePath);
+    // logFile << this->logs;
+    // logFile.close();
+    return true;
   }
 
   std::string Tablog::logLevelToString(LogLevel level) {
@@ -163,10 +168,8 @@ namespace tablog {
     return loglevelConfig;
   }
 
-  bool Tablog::extractConfigBool(std::optional<bool> optionalBool, bool defaultConfig) {
-    if (optionalBool.has_value())
-      return optionalBool.value();
-    else
-      return defaultConfig;
+  template <typename T>
+  T Tablog::extractConfig(const std::optional<T>& optional, const T& defaultConfig) {
+      return optional.value_or(defaultConfig);
   }
 }

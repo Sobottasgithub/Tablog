@@ -25,6 +25,7 @@ namespace tablog {
                   std::optional<bool> displayTimestamp = true,
                   std::optional<bool> displayColor = true,
                   std::optional<bool> storeLogs = false,
+                  std::optional<std::string> logsDirectory = "",
                   std::optional<LoglevelConfig> debug = std::nullopt,
                   std::optional<LoglevelConfig> info = std::nullopt,
                   std::optional<LoglevelConfig> warning = std::nullopt,
@@ -32,8 +33,6 @@ namespace tablog {
                   std::optional<LoglevelConfig> critical = std::nullopt);
   
    void log(LogLevel loglevel, const std::string& message);
-
-   bool storeLogs(std::string filePath);
    
   private:
    inline static std::mutex loggerMutex;
@@ -44,6 +43,7 @@ namespace tablog {
     bool displayTimestamp = true;
     bool displayColor = true;
     bool storeLogs = false;
+    std::string logsDirectory = "";
     std::unordered_map<LogLevel, LoglevelConfig> loglevelConfigs;
    };
 
@@ -55,7 +55,10 @@ namespace tablog {
 
    LoglevelConfig setOptional(std::optional<LoglevelConfig> option, std::string replacement);
 
-   bool extractConfigBool(std::optional<bool> optionalBool, bool defaultConfig);
+   template <typename T>
+   T extractConfig(const std::optional<T>& opt, const T& defaultConfig);
+
+   bool initStoreLogs(std::string filePath);
  };
 }
 
