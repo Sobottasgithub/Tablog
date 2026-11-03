@@ -87,5 +87,5 @@ std::shared_ptr<tablog::Tablog> loggerInstance = registry->get("logger");
 ## Test
 To test Tablog, you must run the following in the shell:
 ```
-nix run .#client
+nix run .#test
 ```

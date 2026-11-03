@@ -30,7 +30,7 @@
               pname,
               buildTarget,
               enableLib ? false,
-              enableClient ? false,
+              enableTest ? false,
               extraInputs ? [ ],
             }:
             pkgs.stdenv.mkDerivation {
@@ -43,7 +43,7 @@
                 cmake -B build -S $src \
                   -DCMAKE_BUILD_TYPE=Release \
                   -DDEF_TABLOG=${if enableLib then "ON" else "OFF"} \
-                  -DDEF_CLIENT=${if enableClient then "ON" else "OFF"} \
+                  -DDEF_TEST=${if enableTest then "ON" else "OFF"} \
               '';
 
               buildPhase = ''
@@ -67,10 +67,10 @@
         {
           inherit lib;
 
-          client = mkTablogPackage {
-            pname = "tablog-client";
-            buildTarget = "tablog-client";
-            enableClient = true;
+          test = mkTablogPackage {
+            pname = "tablog-test";
+            buildTarget = "tablog-test";
+            enableTest = true;
             extraInputs = [ lib ];
           };
 
@@ -78,7 +78,7 @@
             pname = "libtablog-full";
             buildTarget = "all";
             enableLib = true;
-            enableClient = true;
+            enableTest = true;
           };
 
           default = lib;

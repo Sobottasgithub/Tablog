@@ -5,12 +5,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(DEF_TABLOG "configure library" ON)
-option(DEF_CLIENT "configure client" ON)
+option(DEF_TEST "configure test" ON)
 
 if(DEF_TABLOG)
     add_subdirectory(lib/tablog)
 endif()
 
-if(DEF_CLIENT)
-    add_subdirectory(test/client)
+if(DEF_TEST)
+    add_subdirectory(test)
 endif()
